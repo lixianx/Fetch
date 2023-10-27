@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit Page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<script>
+window.onload = function() {
+    find();
+}
+</script>
+<div id="container">
+    <h1>提交文件</h1>
+    <form id="fileForm" enctype="multipart/form-data">
+        <label for="file">选择要上传的文件：</label>
+        <input type="file" id="file" name="file" accept=".pdf, .doc, .docx" required>
+        <input type="button" id="submitBtn" value="上传文件" onclick="showProgressBar()">
+    </form>
+
+    <div id="status"></div>
+    <div id="progress">
+        <div id="bar">0%</div>
+    </div>
+    <div id="speed"></div>
+    <hr>
+    <table>
+        <tr>
+            <th>文件名</th>
+            <th>最后提交时间</th>
+        </tr>
+        <tbody id="files-body">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function showProgressBar() {
+        var progressBar = document.getElementById("progress");
+        progressBar.style.display = "block";
+
+        var fileInput = document.getElementById("file");
+        var file = fileInput.files[0];
+        if (file) {
+            var formData = new FormData();
+            formData.append("file", file);
+            formData.append("filename", file.name);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/submit/upload", true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    document.getElementById("status").innerHTML = "文件上传成功!";
+                    find();
+                } else {
+                    document.getElementById("status").innerHTML = "文件上传失败!";
+                }
+            };
+
+            var startTime = new Date().getTime();
+            var prevLoaded = 0;
+
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    var percentComplete = (e.loaded / e.total) * 100;
+                    document.getElementById("status").innerHTML = "上传进度: " + percentComplete.toFixed(2) + "%";
+                    document.getElementById("bar").style.width = percentComplete + "%";
+                    document.getElementById("bar").innerHTML = percentComplete.toFixed(2) + "%";
+
+                    prevLoaded = e.loaded;
+                }
+            };
+
+            xhr.send(formData);
+        } else {
+            document.getElementById("status").innerHTML = "请选择要上传的文件!";
+        }
+    }
+
+    function find(){
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if(this.readyState == 4){
+                if(this.status == 200){
+                    const json = JSON.parse(this.responseText);
+                    console.log(json)
+                    var html = ""
+                    for (let i = 0; i < json.length; i ++){
+                        var good = json[i]
+                        html += "<tr>"
+                        html += "<td>"+good.fileName+"</td>"
+                        html += "<td>"+good.updateTime+"</td>"
+                        html += "</tr>"
+                    }
+                    document.getElementById("files-body").innerHTML = html
+                }
+                else {
+                    alert(this.status)
+                }
+            }
+        }
+        xhr.open("GET", "/submit/find", true)
+        xhr.send()
+    }
+</script>
+</body>
+</html>
