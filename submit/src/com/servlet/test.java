@@ -18,9 +18,9 @@ public class test {
 
         try {
             // 1. 建立数据库连接
-            String url = "jdbc:mysql://47.113.226.241:3306/learning";
-            String username = "root";
-            String password = "xLx00544@@";
+            String url = "";
+            String username = "";
+            String password = "";
             connection = DriverManager.getConnection(url, username, password);
 
             // 2. 执行查询
